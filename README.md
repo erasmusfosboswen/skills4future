@@ -9,7 +9,7 @@ Four vocational schools from Germany, Portugal, Iceland and Türkiye work togeth
 
 ## Website
 
-https://erasmusfosboswen.github.io/Skills4Future/
+https://erasmusfosboswen.github.io/skills4future/
 
 ## Contents
 
