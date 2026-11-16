@@ -191,9 +191,49 @@ textarea.field{font-family:var(--body);min-height:120px;resize:vertical}
 .poster h4{margin:0;font-family:var(--display);font-size:34px;line-height:1.05}
 .mission .opts{grid-template-columns:1fr}
 .ai{background:var(--bg);border-radius:10px;padding:12px 14px;display:grid;gap:6px;font-size:16px}
-.logos{display:flex;flex-wrap:wrap;gap:12px;align-items:center}.pl{height:110px;width:auto;background:#fff;border-radius:10px;padding:6px}.cc{height:36px;width:auto;display:block}.herologo{width:150px;max-width:40%;background:#fff;border-radius:16px;padding:8px}</style>
+.logos{display:flex;flex-wrap:wrap;gap:12px;align-items:center}.pl{height:110px;width:auto;background:#fff;border-radius:10px;padding:6px}.cc{height:36px;width:auto;display:block}.herologo{width:150px;max-width:40%;background:#fff;border-radius:16px;padding:8px}
+/* motion: plays once on first scroll, then everything stays put */
+@keyframes rise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+@keyframes stepin{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.motion .strip,.motion .hero h1,.motion .hero p,.motion .meter div,.motion .top .tabs{animation:rise .7s cubic-bezier(.2,.7,.2,1) both}
+.motion .hero h1{animation-delay:.08s}.motion .hero p{animation-delay:.18s}
+.motion .meter div:nth-child(1){animation-delay:.28s}.motion .meter div:nth-child(2){animation-delay:.35s}
+.motion .meter div:nth-child(3){animation-delay:.42s}.motion .meter div:nth-child(4){animation-delay:.49s}
+.motion .top .tabs{animation-delay:.58s}
+.motion .rv{opacity:0;transform:translateY(26px)}
+.motion .rv.in{opacity:1;transform:none;transition:opacity .6s ease,transform .6s cubic-bezier(.2,.7,.2,1);transition-delay:var(--d,0ms)}
+@media (prefers-reduced-motion:no-preference){[data-step]{animation:stepin .35s ease both}}
+@media (prefers-reduced-motion:reduce){.stick{transition:none}}
+
+/* slim bar that stays at the top once the headline has scrolled away */
+.stick{position:fixed;top:0;left:0;right:0;z-index:10;background:color-mix(in srgb,var(--bg) 86%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);transform:translateY(-100%);visibility:hidden;transition:transform .3s ease,visibility .3s}
+.stick.show{transform:none;visibility:visible}
+.stick .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:8px;padding-bottom:8px}
+.stick strong{font-family:var(--display);font-weight:800;letter-spacing:-.02em;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.stick .tabs{box-shadow:none;padding:4px;flex:none}
+.stick .tabs button{padding:8px 14px;font-size:14px}
+.stick .tabs button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+@media (max-width:430px){.stick strong{display:none}.stick .wrap{justify-content:center}}
+
+/* icons in the fact cards */
+.meter svg{width:38px;height:38px;padding:8px;border-radius:12px;background:var(--accent-soft);color:var(--accent);margin-bottom:8px}
+
+main,.steps{scroll-margin-top:72px}
+
+main.wrap{padding-top:22px;padding-bottom:40px}
+footer.wrap{padding-top:22px;padding-bottom:40px}
+.stick{background:var(--accent);color:var(--on-accent);border-bottom:0;-webkit-backdrop-filter:none;backdrop-filter:none}
+.stick .tabs{margin:0;background:transparent;border:0}
+.stick .tabs button{border-radius:999px;color:var(--on-accent)}
+.stick .tabs button[aria-pressed="true"]{background:var(--bg);color:var(--ink);opacity:1}
+.eu{width:220px;max-width:100%;background:#fff;border-radius:10px;padding:10px}
+.logos{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.cc{height:36px;width:auto;display:block}
+</style>
+<script>(function(){try{var m=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches,k="s4f-o-seen-chart-detectives",s=false;try{s=sessionStorage.getItem(k)==="1";sessionStorage.setItem(k,"1")}catch(e){}if(!m&&!s&&"IntersectionObserver" in window)document.documentElement.classList.add("motion")}catch(e){}})();</script>
 </head>
 <body>
+<div class="stick" id="stick"><div class="wrap"><strong>Chart Detectives</strong><div class="tabs"><button type="button" data-view="teacher-plan">Teacher plan</button><button type="button" data-view="student-module">Student module</button></div></div></div>
 <header class="top">
   <div class="wrap">
     <div class="strip"><span>Skills 4 Future!</span><span>Erasmus+ KA210-VET</span><a href="../" style="color:inherit">Basic Skills Toolkit: all lesson plans</a><span>Lesson plan 03 · Weiden (DE)</span></div>
@@ -455,6 +495,29 @@ function start(data){
 var hot=window.claude&&window.claude.hot;
 if(hot&&hot.snapshot)hot.snapshot(function(){return{S:S}});
 if(hot&&hot.ready)hot.ready(start);else start((hot&&hot.data)||{});
+})();
+</script>
+<script>(function(){
+"use strict";
+var root=document.documentElement,stick=document.getElementById("stick");
+if(stick){
+function sync(){var v=location.hash==="#student-module"?"student-module":"teacher-plan";
+  Array.prototype.forEach.call(stick.querySelectorAll("button"),function(b){b.setAttribute("aria-pressed",String(b.dataset.view===v))})}
+window.addEventListener("hashchange",sync);sync();
+Array.prototype.forEach.call(stick.querySelectorAll("button"),function(b){b.addEventListener("click",function(){sync();
+  var m=document.querySelector("main");if(m.scrollIntoView)m.scrollIntoView({block:"start"})})});
+if("IntersectionObserver" in window)new IntersectionObserver(function(es){stick.classList.toggle("show",!es[0].isIntersecting&&es[0].boundingClientRect.top<0)}).observe(document.querySelector(".top .tabs"));
+}
+if("IntersectionObserver" in window){
+  if(root.classList.contains("motion")){
+    var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add("in");io.unobserve(e.target)}})},{rootMargin:"0px 0px -8% 0px"});
+    var vh=window.innerHeight,vw=window.innerWidth;
+    Array.prototype.forEach.call(document.querySelectorAll("#view-teacher-plan .panel, .landing .panel, .landing .lpcard, footer"),function(el){
+      var r=el.getBoundingClientRect();
+      if(el.offsetParent===null||r.top>vh*0.85){el.classList.add("rv");if(r.left>vw/2)el.style.setProperty("--d","90ms");io.observe(el)}
+    });
+  }
+}
 })();
 </script>
 </body>
